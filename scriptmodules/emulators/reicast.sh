@@ -40,7 +40,6 @@ function install_reicast() {
 function configure_reicast() {
     mkRomDir "dreamcast"
 
-    # create bios dir. Copy dc_boot.bin and dc_flash.bin there.
     mkdir $md_inst/data
 
     cat > $md_inst/reicast.sh << _EOF_
@@ -54,4 +53,6 @@ _EOF_
     
     # add system
     addSystem 1 "$md_id" "dreamcast" "$md_inst/reicast.sh %ROM%"
+    
+    __INFMSGS+=("For the Dreamcast emulator you need to copy the BIOS files: dc_boot.bin and dc_flash.bin to the folder /opt/retropie/emulators/reicast/data")
 }
