@@ -42,41 +42,26 @@ function install_linapple() {
     'linapple.conf'
     )
     # install linapple.conf under another name as we will copy it
-    cp -v "$md_build/linapple.conf" "$md_conf_root/apple2/linapple.conf"
-    cp -v "$md_build/Master.dsk" "$md_conf_root/apple2/Master.dsk"
+    cp -v "$md_build/linapple.conf" "$md_inst/linapple.conf.sample"
+    cp -vf "$md_build/Master.dsk" "$md_conf_root/apple2/Master.dsk"
 }
 
 function configure_linapple() {
     mkRomDir "apple2"
     mkUserDir "$md_conf_root/apple2"
 
-    addSystem 1 "$md_id" "apple2" "$md_inst/linapple -1 %ROM%" "Apple II" ".po .dsk .nib"
-
-<<<<<<< HEAD
-    moveConfigDir "$home/.linapple" "$md_conf_root/apple2"
-    chown -R $user:$user "$md_conf_root/apple2"
-=======
-    rm -f "$romdir/apple2/Start.txt"
-    cat > "$romdir/apple2/+Start LinApple.sh" << _EOF_
-#!/bin/bash
-pushd "$md_inst"
-./linapple
-popd
-_EOF_
-    chmod +x "$romdir/apple2/+Start LinApple.sh"
-
-    mkUserDir "$md_conf_root/apple2"
-
     # if the user doesn't already have a config, we will copy the default.
-    if [[ ! -f "$md_conf_root/apple2/linapple.conf" ]]; then
-        cp -v "linapple.conf.sample" "$md_conf_root/apple2/linapple.conf"
-        iniConfig " = " "" "$md_conf_root/apple2/linapple.conf"
+    if [[ ! -f "$configdir/apple2/linapple.conf" ]]; then
+        cp -v "linapple.conf.sample" "$configdir/apple2/linapple.conf"
+        iniConfig " = " "" "$configdir/apple2/linapple.conf"
         iniSet "Joystick 0" "1"
         iniSet "Joystick 1" "1"
     fi
-    ln -sf "$md_conf_root/apple2/linapple.conf"
-    chown $user:$user "$md_conf_root/apple2/linapple.conf"
+    moveConfigFile "linapple.conf" "$md_conf_root/apple2/linapple.conf"
+    moveConfigFile "Master.dsk" "$md_conf_root/apple2/Master.dsk"
 
-    addSystem 1 "$md_id" "apple2" "$romdir/apple2/+Start\ LinApple.sh" "Apple II" ".sh"
->>>>>>> c890d526c3a8c909a4a2b542d85860f743a4b445
+    addSystem 1 "$md_id" "apple2" "$md_inst/linapple -1 %ROM%" "Apple II" ".po .dsk .nib"
+
+    moveConfigDir "$home/.linapple" "$md_conf_root/apple2"
+    chown -R $user:$user "$md_conf_root/apple2"
 }
