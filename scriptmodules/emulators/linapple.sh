@@ -32,14 +32,14 @@ function install_linapple() {
     mkdir -p "$md_inst/ftp/cache"
     mkdir -p "$md_inst/images"
     md_ret_files=(
-    'CHANGELOG'
-    'INSTALL'
-    'LICENSE'
-    'linapple'
-    'Master.dsk'
-    'README'
-    'README-linapple-pie'
-    'linapple.conf'
+        'CHANGELOG'
+        'INSTALL'
+        'LICENSE'
+        'linapple'
+        'Master.dsk'
+        'README'
+        'README-linapple-pie'
+        'linapple.conf'
     )
     # install linapple.conf under another name as we will copy it
     cp -v "$md_build/linapple.conf" "$md_inst/linapple.conf.sample"
@@ -51,9 +51,9 @@ function configure_linapple() {
     mkUserDir "$md_conf_root/apple2"
 
     # if the user doesn't already have a config, we will copy the default.
-    if [[ ! -f "$configdir/apple2/linapple.conf" ]]; then
-        cp -v "linapple.conf.sample" "$configdir/apple2/linapple.conf"
-        iniConfig " = " "" "$configdir/apple2/linapple.conf"
+    if [[ ! -f "$md_conf_root/apple2/linapple.conf" ]]; then
+        cp -v "linapple.conf.sample" "$md_conf_root/apple2/linapple.conf"
+        iniConfig " = " "" "$md_conf_root/apple2/linapple.conf"
         iniSet "Joystick 0" "1"
         iniSet "Joystick 1" "1"
     fi
