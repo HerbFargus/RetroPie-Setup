@@ -12,7 +12,7 @@
 rp_module_id="openbor"
 rp_module_desc="OpenBOR - Beat 'em Up Game Engine"
 rp_module_menus="4+"
-rp_module_flags="!x11 !mali"
+rp_module_flags="!mali"
 
 function depends_openbor() {
     getDepends libsdl1.2-dev libsdl-gfx1.2-dev libogg-dev libvorbisidec-dev libvorbis-dev libpng12-dev zlib1g-dev
@@ -23,8 +23,10 @@ function sources_openbor() {
 }
 
 function build_openbor() {
+    local params=()
+    ! isPlatform "x11" && params+=(NO_GL=1)
     make clean
-    NO_GL=1 make
+    make "${params[@]}"
     cd "$md_build/tools/borpak/"
     ./build-linux.sh
     md_ret_require="$md_build/OpenBOR"
@@ -36,13 +38,12 @@ function install_openbor() {
        'tools/borpak/borpak'
        'tools/unpack.sh'
     )
-
 }
 
 function configure_openbor() {
-    mkRomDir "ports"
+    addPort "$md_id" "openbor" "OpenBOR - Beats of Rage Engine" "pushd $md_inst; $md_inst/OpenBOR; popd"
+
     mkRomDir "ports/$md_id"
-    mkUserDir "$configdir/$md_id"
 
     cat >"$md_inst/extract.sh" <<_EOF_
 #!/bin/bash
@@ -66,14 +67,14 @@ done
 echo "Your games are extracted and ready to be played. Your originals are stored safely in $BORROMDIR/original/ but they won't be needed anymore. Everything within it can be deleted."
 _EOF_
     chmod +x "$md_inst/extract.sh"
-    mkdir "$configdir/$md_id/ScreenShots/"
-    mkdir "$configdir/$md_id/Logs/"
-    mkdir "$configdir/$md_id/Saves/"
-    ln -snf "$configdir/$md_id/ScreenShots/" "$md_inst/ScreenShots"
-    ln -snf "$configdir/$md_id/Logs/" "$md_inst/Logs"
-    ln -snf "$configdir/$md_id/Saves/" "$md_inst/Saves"
 
-    ln -snf "$romdir/ports/$md_id/" "$md_inst/Paks"
-    addPort "$md_id" "OpenBOR" "OpenBOR - Beats of Rage Engine" "pushd $md_inst; $md_inst/OpenBOR; popd"
+    local dir
+    for dir in ScreenShots Logs Saves; do
+        mkUserDir "$md_conf_root/$md_id/$dir"
+        ln -snf "$md_conf_root/$md_id/$dir" "$md_inst/$dir"
+    done
+
+    ln -snf "$romdir/ports/$md_id" "$md_inst/Paks"
+
      __INFMSGS+=("OpenBOR games need to be extracted to function properly. Place your pak files in $romdir/ports/$md_id/ and then run $md_inst/extract.sh. When the script is done, your original pak files will be found in $romdir/ports/$md_id/originals/ and can be deleted.")
 }

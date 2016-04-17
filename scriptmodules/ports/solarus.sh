@@ -15,7 +15,7 @@ rp_module_menus="4+"
 rp_module_flags=""
 
 function depends_solarus() {
-    getDepends cmake libsdl2-dev libsdl2-image-dev libsdl2-ttf-dev libluajit-5.1-dev libphysfs-dev libopenal-dev libmodplug-dev libvorbis-dev zip
+    getDepends cmake libsdl2-dev libsdl2-image-dev libsdl2-ttf-dev libluajit-5.1-dev libphysfs-dev libopenal-dev libmodplug-dev libvorbis-dev unzip
 }
 
 function sources_solarus() {
@@ -39,6 +39,12 @@ function build_solarus() {
     cd ../zelda-roth-se-1.0.8/
     cmake . -DCMAKE_INSTALL_PREFIX:PATH="$md_inst"
     make
+    md_ret_require=(
+        "$md_build/build/solarus_run"
+        "$md_build/zsdx-1.10.3/data.solarus"
+        "$md_build/zsxd-1.10.3/data.solarus"
+        "$md_build/zelda-roth-se-1.0.8/data.solarus"
+    )
 }
 
 function install_solarus() {
@@ -53,10 +59,14 @@ function install_solarus() {
 }
 
 function configure_solarus() {
-    addPort "$md_id" "zsdx" "Solarus Engine - Zelda Mystery of Solarus DX" "LD_LIBRARY_PATH=$md_inst/lib/arm-linux-gnueabihf/ $md_inst/bin/solarus_run $md_inst/share/solarus/zsdx/"
-    addPort "$md_id" "zsxd" "Solarus Engine - Zelda Mystery of Solarus XD" "LD_LIBRARY_PATH=$md_inst/lib/arm-linux-gnueabihf/ $md_inst/bin/solarus_run $md_inst/share/solarus/zsxd/"
-    addPort "$md_id" "zelda_roth_se" "Solarus Engine - Zelda Return of the Hylian SE" "LD_LIBRARY_PATH=$md_inst/lib/arm-linux-gnueabihf/ $md_inst/bin/solarus_run $md_inst/share/solarus/zelda_roth_se/"
-    chown -R $user:$user "$md_inst/share/solarus/zsdx/data.solarus"
-    chown -R $user:$user "$md_inst/share/solarus/zsxd/data.solarus"
-    chown -R $user:$user "$md_inst/share/solarus/zelda_roth_se/data.solarus"
+    addPort "$md_id" "zsdx" "Solarus Engine - Zelda Mystery of Solarus DX" "LD_LIBRARY_PATH=$md_inst/lib $md_inst/bin/solarus_run $md_inst/share/solarus/zsdx/"
+    addPort "$md_id" "zsxd" "Solarus Engine - Zelda Mystery of Solarus XD" "LD_LIBRARY_PATH=$md_inst/lib $md_inst/bin/solarus_run $md_inst/share/solarus/zsxd/"
+    addPort "$md_id" "zelda_roth_se" "Solarus Engine - Zelda Return of the Hylian SE" "LD_LIBRARY_PATH=$md_inst/lib $md_inst/bin/solarus_run $md_inst/share/solarus/zelda_roth_se/"
+
+    # symlink the library so it can be found on all platforms
+    ln -sf "$md_inst"/lib/*/libsolarus.so "$md_inst/lib"
+
+    moveConfigDir "$home/.solarus" "$md_conf_root/solarus"
+
+    chown -R $user:$user "$md_inst"/share/solarus/*/data.solarus
 }

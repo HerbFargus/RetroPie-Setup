@@ -19,6 +19,14 @@ function apt_upgrade_raspbiantools() {
     apt-get -y dist-upgrade
 }
 
+
+function lxde_raspbiantools() {
+    aptInstall lxde xorg raspberrypi-ui-mods epiphany-browser
+    setConfigRoot "ports"
+    addPort "lxde" "lxde" "Desktop" "startx"
+    enable_autostart
+}
+
 function package_cleanup_raspbiantools() {
     # remove PulseAudio since this is slowing down the whole system significantly. Cups is also not needed
     apt-get remove -y pulseaudio cups wolfram-engine sonic-pi
@@ -33,7 +41,14 @@ function disable_blanker_raspbiantools() {
 function enable_modules_raspbiantools() {
     sed -i '/snd_bcm2835/d' /etc/modules
 
-    for module in uinput joydev snd-bcm2835; do
+    local modules=(uinput)
+    # joydev and snd-bcm2835 get loaded automatically on Jessie
+    if [[ "$__raspbian_ver" -lt "8" ]]; then
+        modules+=(joydev snd-bcm2835)
+    fi
+
+    local module
+    for module in "${modules[@]}"; do
         modprobe $module
         if ! grep -q "$module" /etc/modules; then
             addLineToFile "$module" "/etc/modules"
@@ -48,9 +63,10 @@ function configure_raspbiantools() {
         local cmd=(dialog --backtitle "$__backtitle" --menu "Choose an option" 22 76 16)
         local options=(
             1 "Upgrade Raspbian packages"
-            2 "Remove some uneeded packages (pulseaudio / cups / wolfram)"
-            3 "Disable screen blanker"
-            4 "Enable needed kernel modules (uinput joydev snd-bcm2835)"
+            2 "Install desktop environment (LXDE)"
+            3 "Remove some uneeded packages (pulseaudio / cups / wolfram)"
+            4 "Disable screen blanker"
+            5 "Enable needed kernel modules (uinput joydev snd-bcm2835)"
         )
         local choice=$("${cmd[@]}" "${options[@]}" 2>&1 >/dev/tty)
         if [[ -n "$choice" ]]; then
@@ -59,12 +75,15 @@ function configure_raspbiantools() {
                     rp_callModule "$md_id" apt_upgrade
                     ;;
                 2)
-                    rp_callModule "$md_id" package_cleanup
+                    rp_callModule "$md_id" lxde
                     ;;
                 3)
-                    rp_callModule "$md_id" disable_blanker
+                    rp_callModule "$md_id" package_cleanup
                     ;;
                 4)
+                    rp_callModule "$md_id" disable_blanker
+                    ;;
+                5)
                     rp_callModule "$md_id" enable_modules
                     ;;
             esac

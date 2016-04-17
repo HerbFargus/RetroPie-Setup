@@ -68,8 +68,10 @@ function install_scummvm() {
 function configure_scummvm() {
     mkRomDir "scummvm"
 
-    moveConfigDir "$home/.scummvm" "$configdir/scummvm"
-    moveConfigFile "$home/.scummvmrc" "$configdir/scummvm/scummvmrc"
+    local dir
+    for dir in .config .local/share .cache; do
+        moveConfigDir "$home/$dir/scummvm" "$md_conf_root/scummvm"
+    done
 
     # Create startup script
     rm -f "$romdir/scummvm/+Launch GUI.sh"

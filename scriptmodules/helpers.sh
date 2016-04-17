@@ -85,6 +85,8 @@ function editFile() {
 function hasPackage() {
     local pkg="$1"
     local req_ver="$2"
+    local comp="$3"
+    [[ -z "$comp" ]] && comp="ge"
     local status=$(dpkg-query -W --showformat='${Status} ${Version}' $1 2>/dev/null)
     if [[ $? -eq 0 ]]; then
         local ver="${status##* }"
@@ -93,7 +95,7 @@ function hasPackage() {
         if [[ "$status" == *"ok installed" ]]; then
             # if we didn't request a version number, be happy with any
             [[ -z "$req_ver" ]] && return 0
-            dpkg --compare-versions "$ver" ge "$req_ver" && return 0
+            dpkg --compare-versions "$ver" "$comp" "$req_ver" && return 0
         fi
     fi
     return 1
@@ -108,7 +110,13 @@ function aptUpdate() {
 
 function aptInstall() {
     aptUpdate
-    apt-get install -y --no-install-recommends $@
+    apt-get install -y "$@"
+    return $?
+}
+
+function aptRemove() {
+    aptUpdate
+    apt-get remove -y "$@"
     return $?
 }
 
@@ -119,11 +127,11 @@ function getDepends() {
     for required in $@; do
         if [[ "$__depends_mode" == "install" ]]; then
             # make sure we have our sdl1 / sdl2 installed
-            if [[ "$required" == "libsdl1.2-dev" ]] && ! hasPackage libsdl1.2-dev 1.2.15-$(get_ver_sdl1)rpi; then
+            if [[ "$required" == "libsdl1.2-dev" ]] && ! hasPackage libsdl1.2-dev 1.2.15-$(get_ver_sdl1)rpi "eq"; then
                 packages+=("$required")
                 continue
             fi
-            if ! isPlatform "x11" && [[ "$required" == "libsdl2-dev" ]] && ! hasPackage libsdl2-dev $(get_ver_sdl2); then
+            if ! isPlatform "x11" && [[ "$required" == "libsdl2-dev" ]] && ! hasPackage libsdl2-dev $(get_ver_sdl2) "eq"; then
                 packages+=("$required")
                 continue
             fi
@@ -168,7 +176,7 @@ function getDepends() {
             packages=("${temp[@]}")
         fi
 
-        aptInstall ${packages[@]}
+        aptInstall --no-install-recommends "${packages[@]}"
         # check the required packages again rather than return code of apt-get, as apt-get
         # might fail for other reasons (other broken packages, eg samba in a chroot environment)
         for required in ${packages[@]}; do
@@ -313,13 +321,15 @@ function setDispmanx() {
 }
 
 function iniFileEditor() {
-    local config="$1"
+    local delim="$1"
+    local quote="$2"
+    local config="$3"
     [[ ! -f "$config" ]] && return
 
     # disable globbing
     set -f
 
-    iniConfig " = " "" "$config"
+    iniConfig "$delim" "$quote" "$config"
     local sel
     local value
     local option
@@ -480,7 +490,6 @@ function setESSystem() {
     local command=$5
     local platform=$6
     local theme=$7
-    local directlaunch=$8
 
     local conf="/etc/emulationstation/es_systems.cfg"
     mkdir -p "/etc/emulationstation"
@@ -498,7 +507,6 @@ function setESSystem() {
             -s "/systemList/system[last()]" -t elem -n "command" -v "$command" \
             -s "/systemList/system[last()]" -t elem -n "platform" -v "$platform" \
             -s "/systemList/system[last()]" -t elem -n "theme" -v "$theme" \
-            -s "/systemList/system[last()]" -t elem -n "directlaunch" -v "$directlaunch" \
             "$conf"
     else
         xmlstarlet ed -L \
@@ -508,7 +516,6 @@ function setESSystem() {
             -u "/systemList/system[name='$name']/command" -v "$command" \
             -u "/systemList/system[name='$name']/platform" -v "$platform" \
             -u "/systemList/system[name='$name']/theme" -v "$theme" \
-            -u "/systemList/system[name='$name']/directlaunch" -v "$directlaunch" \
             "$conf"
     fi
 
@@ -553,7 +560,7 @@ function ensureSystemretroconfig {
     fi
 
     # add the per system default settings
-    iniConfig " = " "" "$config"
+    iniConfig " = " '"' "$config"
     iniSet "input_remapping_directory" "$configdir/$system/"
 
     if [[ -n "$shader" ]]; then
@@ -574,6 +581,14 @@ function setRetroArchCoreOption() {
     iniConfig " = " "\"" "$configdir/all/retroarch-core-options.cfg"
     iniSet "$option" "$value"
     chown $user:$user "$configdir/all/retroarch-core-options.cfg"
+}
+
+# sets module config root to subfolder from $configdir - used for ports that are not actually in the ports etc
+function setConfigRoot() {
+    local dir="$1"
+    md_conf_root="$configdir"
+    [[ -n "$dir" ]] && md_conf_root+="/$dir"
+    mkUserDir "$md_conf_root"
 }
 
 # add a framebuffer mode to /etc/fb.modes - useful for adding specific resolutions used by emulators so SDL
@@ -650,7 +665,7 @@ function addSystem() {
 
         # automatically add parameters for libretro modules
         if [[ "$id" =~ ^lr- ]]; then
-            cmd="$emudir/retroarch/bin/retroarch -L $cmd --config $configdir/$system/retroarch.cfg %ROM%"
+            cmd="$emudir/retroarch/bin/retroarch -L $cmd --config $md_conf_root/$system/retroarch.cfg %ROM%"
         fi
     fi
 
@@ -660,19 +675,17 @@ function addSystem() {
 
     setESSystem "$fullname" "$es_name" "$es_path" "$exts" "$es_cmd" "$platform" "$theme"
 
-    # create a config folder for the system
-    if [[ ! -d "$configdir/$system" ]]; then
-        mkUserDir "$configdir/$system"
-    fi
+    # create a config folder for the system / port
+    mkUserDir "$md_conf_root/$system"
 
-    # add the emulator to the $system/emulators.cfg if a commandline exists (not used for some ports)
+    # add the emulator to the $conf_dir/emulators.cfg if a commandline exists (not used for some ports)
     if [[ -n "$cmd" ]]; then
-        iniConfig "=" '"' "$configdir/$system/emulators.cfg"
+        iniConfig "=" '"' "$md_conf_root/$system/emulators.cfg"
         iniSet "$id" "$cmd"
         if [[ "$default" == "1" ]]; then
             iniSet "default" "$id"
         fi
-        chown $user:$user "$configdir/$system/emulators.cfg"
+        chown $user:$user "$md_conf_root/$system/emulators.cfg"
     fi
 }
 
@@ -682,8 +695,8 @@ function delSystem() {
     # remove from emulation station
     xmlstarlet ed -L -P -d "/systemList/system[name='$system']" /etc/emulationstation/es_systems.cfg
     # remove from apps list for system
-    if [[ -f "$configdir/$system/emulators.cfg" ]]; then
-        iniConfig "=" '"' "$configdir/$system/emulators.cfg"
+    if [[ -f "$md_conf_root/$system/emulators.cfg" ]]; then
+        iniConfig "=" '"' "$md_conf_root/$system/emulators.cfg"
         iniDel "$id"
     fi
 }
@@ -694,10 +707,17 @@ function addPort() {
     local file="$romdir/ports/$3.sh"
     local cmd="$4"
 
+    mkUserDir "$romdir/ports"
+
+    # move configurations from old ports location
+    if [[ -d "$configdir/$port" ]]; then
+        mv "$configdir/$port" "$md_conf_root/"
+    fi
+
     if [ -t 0 ]; then
         cat >"$file" << _EOF_
 #!/bin/bash
-"$rootdir/supplementary/runcommand/runcommand.sh" 0 _SYS_ $port
+"$rootdir/supplementary/runcommand/runcommand.sh" 0 _PORT_ $port
 _EOF_
     else
         cat >"$file"
@@ -709,10 +729,3 @@ _EOF_
     addSystem 1 "$id" "$port pc ports" "$cmd"
 }
 
-function addDirectLaunch() {
-    local name="$1"
-    local fullname="$2"
-    local cmd="$3"
-
-    setESSystem "$fullname" "$name" "" "" "$rootdir/supplementary/runcommand/runcommand.sh 0 \"$cmd\"" "" "$name" "true"
-}

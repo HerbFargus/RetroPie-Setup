@@ -108,7 +108,7 @@ function install_mupen64plus() {
         if [[ -f "$source/projects/unix/Makefile" ]]; then
             # optflags is needed due to the fact the core seems to rebuild 2 files and relink during install stage most likely due to a buggy makefile
             local params=()
-            ifPlatform "rpi" && params+=("VC=1")
+            isPlatform "rpi" && params+=("VC=1")
             make -C "$source/projects/unix" PREFIX="$md_inst" OPTFLAGS="$CFLAGS" "${params[@]}" install
         fi
     done
@@ -117,26 +117,27 @@ function install_mupen64plus() {
 }
 
 function configure_mupen64plus() {
+    mkRomDir "n64"
+
     # copy hotkey remapping start script
     cp "$scriptdir/scriptmodules/$md_type/$md_id/mupen64plus.sh" "$md_inst/bin/"
     chmod +x "$md_inst/bin/mupen64plus.sh"
 
     # to solve startup problems delete old config file
-    rm -f "$configdir/n64/mupen64plus.cfg"
+    rm -f "$md_conf_root/n64/mupen64plus.cfg"
     # remove default InputAutoConfig.ini. inputconfigscript writes a clean file
     rm -f "$md_inst/share/mupen64plus/InputAutoCfg.ini"
-    mkUserDir "$configdir/n64/"
+    mkUserDir "$md_conf_root/n64/"
     # Copy config files
-    cp -v "$md_inst/share/mupen64plus/"{*.ini,font.ttf,*.conf} "$configdir/n64/"
-    chown -R $user:$user "$configdir/n64"
-    su "$user" -c "$md_inst/bin/mupen64plus --configdir $configdir/n64 --datadir $configdir/n64"
+    cp -v "$md_inst/share/mupen64plus/"{*.ini,font.ttf,*.conf} "$md_conf_root/n64/"
+    su "$user" -c "$md_inst/bin/mupen64plus --md_conf_root $md_conf_root/n64 --datadir $md_conf_root/n64"
 
-    iniConfig " = " '"' "$configdir/n64/mupen64plus.cfg"
+    iniConfig " = " '"' "$md_conf_root/n64/mupen64plus.cfg"
     iniSet "ScreenshotPath" "$romdir/n64"
     iniSet "SaveStatePath" "$romdir/n64"
     iniSet "SaveSRAMPath" "$romdir/n64"
 
-    mkRomDir "n64"
+    chown -R $user:$user "$md_conf_root/n64"
 
     delSystem "$md_id" "n64-mupen64plus"
     addSystem 0 "${md_id}-GLideN64" "n64" "$md_inst/bin/mupen64plus.sh mupen64plus-video-GLideN64 %ROM%"

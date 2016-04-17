@@ -105,6 +105,15 @@ function rp_callModule() {
     local md_build="$__builddir/$mod_id"
     local md_inst="$rootdir/$md_type/$mod_id"
 
+    # set md_conf_root to $configdir and to $configdir/ports for ports
+    # ports in libretrocores or systems (as ES sees them) in ports will need to change it manually with setConfigRoot
+    local md_conf_root
+    if [[ "$md_type" == "ports" ]]; then
+        setConfigRoot "ports"
+    else
+        setConfigRoot ""
+    fi
+
     # remove source/build files
     if [[ "${mode}" == "clean" ]]; then
         rmDirExists "$md_build"
@@ -202,7 +211,7 @@ function rp_callModule() {
                         md_ret_errors+=("Could not successfully install $md_desc ($md_build/$file not found).")
                         break
                     fi
-                    cp -Rv "$md_build/$file" "$md_inst"
+                    cp -Rvf "$md_build/$file" "$md_inst"
                 done
             fi
         fi
@@ -299,7 +308,7 @@ function rp_registerModuleDir() {
 function rp_registerAllModules() {
     rp_registerModuleDir 100 "emulators"
     rp_registerModuleDir 200 "libretrocores" 
-    rp_registerModuleDir 250 "ports"
-    rp_registerModuleDir 300 "supplementary"
+    rp_registerModuleDir 300 "ports"
+    rp_registerModuleDir 800 "supplementary"
     rp_registerModuleDir 900 "admin"
 }

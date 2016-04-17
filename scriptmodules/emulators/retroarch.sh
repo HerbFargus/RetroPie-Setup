@@ -82,7 +82,7 @@ function configure_retroarch() {
     fi
 
     # configure default options
-    iniConfig " = " "" "$config"
+    iniConfig " = " '"' "$config"
     iniSet "cache_directory" "/tmp/retroarch"
     iniSet "system_directory" "$biosdir"
     iniSet "config_save_on_exit" "false"
@@ -94,6 +94,12 @@ function configure_retroarch() {
     iniSet "assets_directory" "$md_inst/assets"
     iniSet "overlay_directory" "$md_inst/overlays"
     isPlatform "x11" && iniSet "video_fullscreen" "true"
+
+    # set default render resolution to 640x480 for rpi1
+    if isPlatform "rpi1"; then
+        iniSet "video_fullscreen_x" "640"
+        iniSet "video_fullscreen_y" "480"
+    fi
 
     # enable hotkey ("select" button)
     iniSet "input_enable_hotkey" "nul"

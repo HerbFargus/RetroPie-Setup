@@ -1,0 +1,1 @@
+Please make sure you read the "guidelines for contributing" above before opening an issue. Support questions should go to the forum. Please post to the forum first, as many "issues" can be solved with configuration changes. Please remove this text before posting.
