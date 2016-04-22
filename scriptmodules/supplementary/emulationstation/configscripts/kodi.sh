@@ -32,79 +32,6 @@ function onstart_kodi_joystick() {
 <keymap>
   <global>
     <joystick name="Xbox Gamepad (userspace driver)">
-[dreamcast]
-btn_a =
-btn_b =
-btn_c =
-btn_d =
-btn_x =
-btn_y =
-btn_z =
-btn_start =
-btn_dpad1_left =
-btn_dpad1_right =
-btn_dpad1_up =
-btn_dpad1_down =
-btn_dpad2_left =
-btn_dpad2_right =
-btn_dpad2_up =
-btn_dpad2_down =
-axis_x =
-axis_y =
-axis_trigger_left =
-axis_trigger_right =
-
-[compat]
-btn_trigger_left =
-btn_trigger_right =
-axis_dpad1_x =
-axis_dpad1_y =
-axis_dpad2_x =
-axis_dpad2_y =
-axis_x_inverted =
-axis_y_inverted =
-axis_trigger_left_inverted =
-axis_trigger_right_inverted =
-
-***********
-KODI CONFIGURATIONS
-***********
-<?xml version="1.0" encoding="UTF-8"?>
-<keymap>
-  <global>
-    <joystick name="Xbox Gamepad (userspace driver)">
-      <altname>Controller (Xbox 360 Wireless Receiver for Windows)</altname>
-      <button id="1">Select</button><!--A-->
-      <button id="2">ParentDir</button><!--B-->
-      <button id="3">FullScreen</button><!--X-->
-      <button id="4">ContextMenu</button><!--Y-->
-      <button id="5">Stop</button><!--LEFT SHOULDER BUTTON-->
-      <button id="6">Pause</button><!--RIGHT SHOULDER BUTTON-->
-      <button id="7">PreviousMenu</button><!--BACK-->
-      <button id="7,8">Quit</button><!--BACK+START-->
-      <button id="8">XBMC.ActivateWindow(settings) </button><!--START-->
-      <button id="9">Playlist</button><!--LEFT ANALOGUE STICK BUTTON-->
-      <button id="10">XBMC.UpdateLibrary(video)</button><!--RIGHT ANALOGUE STICK BUTTON-->
-
-      <hat id="1" position="up">Up</hat><!--DPAD UP-->
-      <hat id="1" position="down">Down</hat><!--DPAD DOWN-->
-      <hat id="1" position="right">Right</hat><!--DPAD RIGHT-->
-      <hat id="1" position="left">Left</hat><!--DPAD LEFT-->
-
-      <axis limit="-1" id="2">Up</axis><!--LEFT ANALOGUE UP-->
-      <axis limit="+1" id="2">Down</axis><!--LEFT ANALOGUE DOWN-->
-      <axis limit="+1" id="1">Right</axis><!--LEFT ANALOGUE RIGHT-->
-      <axis limit="-1" id="1">Left</axis><!--LEFT ANALOGUE LEFT-->
-
-      <axis limit="-1" id="4">VolumeUp</axis><!--RIGHT ANALOGUE UP-->
-      <axis limit="+1" id="4">VolumeDown</axis><!--RIGHT ANALOGUE DOWN-->
-      <axis limit="-1" id="5">AnalogSeekBack</axis><!--RIGHT ANALOGUE LEFT-->
-      <axis limit="+1" id="5">AnalogSeekForward</axis> <!--RIGHT ANALOGUE RIGHT-->
-
-      <axis limit="-1" id="3">ScrollDown</axis><!--LEFT TRIGGER-->
-      <axis limit="+1" id="3">ScrollUp</axis><!--RIGHT TRIGGER-->
-    </joystick>
-  </global>
 _EOF_
 
     # write temp file header
@@ -136,16 +63,16 @@ function map_kodi_joystick() {
             keys=("btn_dpad1_right")
             ;;
         a)
-            keys=(btn_b)
+            keys=(btn_a)
             ;;
         b)
-            keys=("btn_a")
+            keys=("btn_b")
             ;;
         x)
-            keys=("btn_y")
+            keys=("btn_x")
             ;;
         y)
-            keys=("btn_x")
+            keys=("btn_y")
             ;;
         leftbottom)
             keys=("btn_trigger_left")
@@ -158,6 +85,12 @@ function map_kodi_joystick() {
             ;;
         righttop)
             keys=("axis_trigger_right")
+            ;;
+        leftthumb)
+            keys=("left_analogue_stick_button")
+            ;;
+        rightthumb)
+            keys=("right_analogue_stick_button")
             ;;
         start)
             keys=("btn_start")
@@ -201,32 +134,56 @@ function map_kodi_joystick() {
         case "$input_type" in
             axis) 
                 # key "X/Y Axis" needs different button naming
-                if [[ "$key" == "btn_trigger_left" ]] ; then
-                    iniSet "axis_trigger_left" "$input_id"
-                    iniSet "axis_trigger_left_inverted" "no"
-                elif [[ "$key" == "btn_trigger_right" ]] ; then
-                    iniSet "axis_trigger_right" "$input_id"
-                    iniSet "axis_trigger_right_inverted" "no"
-                elif [[ "$key" == "btn_dpad1_up" || "$key" == "btn_dpad1_down" ]]; then
-                    iniSet "axis_y" "$input_id"
-                    iniSet "axis_y_inverted" "no"
-                elif [[ "$key" == "btn_dpad1_left" || "$key" == "btn_dpad1_right" ]]; then
-                    iniSet "axis_x" "$input_id"
-                    iniSet "axis_x_inverted" "no"
-                elif [[ "$key" == *axis* ]] ; then
-                    case "$device_name" in 
-                    esac
-                    iniSet "${key}" "$input_id"
-                    iniSet "${key}_inverted" "no"
+                if [[ "$key" == "axis_trigger_left" ]] ; then
+				    iniSet "<!--LEFT TRIGGER--><axis limit=\"-1\" id" "\"$input_id\">ScrollDown</axis>"
+                elif [[ "$key" == "axis_trigger_right" ]] ; then
+				    iniSet "<!--RIGHT TRIGGER--><axis limit=\"+1\" id" "\"$input_id\">ScrollUp</axis>"
+                elif [[ "$key" == "btn_dpad1_up" ]]; then
+				    iniSet "<!--DPAD UP--><hat id" "\"$input_id\"position="up">Up</hat>"
+                elif [[ "$key" == "btn_dpad1_down" ]]; then
+				    iniSet "<!--DPAD DOWN--><hat id" "\"$input_id\"position="down">Down</hat>"
+                elif [[ "$key" == "btn_dpad1_left" ]]; then
+				    iniSet "<!--DPAD LEFT--><hat id" "\"$input_id\"position="left">Left</hat>"
+                elif [[ "$key" == "btn_dpad1_right" ]]; then
+				    iniSet "<!--DPAD RIGHT--><hat id" "\"$input_id\"position="right">Right</hat>"
                 fi
                 ;;
             hat)
+                if [[ "$key" == "btn_dpad1_up" ]]; then
+				    iniSet "<!--DPAD UP--><hat id" "\"$input_id\"position="up">Up</hat>"
+                elif [[ "$key" == "btn_dpad1_down" ]]; then
+				    iniSet "<!--DPAD DOWN--><hat id" "\"$input_id\"position="down">Down</hat>"
+                elif [[ "$key" == "btn_dpad1_left" ]]; then
+				    iniSet "<!--DPAD LEFT--><hat id" "\"$input_id\"position="left">Left</hat>"
+                elif [[ "$key" == "btn_dpad1_right" ]]; then
+				    iniSet "<!--DPAD RIGHT--><hat id" "\"$input_id\"position="right">Right</hat>"
+                fi
                 ;;
             *)
-                if [[ "$key" != *axis* || "$key" == "btn_a" ]] ; then
-				    iniSet "<button id="1">" "\"$input_id\">Select</button><!--A-->"
-                if [[ "$key" != *axis* || "$key" == "btn_b" ]] ; then
-				    iniSet "<button id="2">" "\"$input_id\">ParentDir</button><!--B-->"
+                if [[ "$key" == "btn_a" ]] ; then
+				    iniSet "<!--A--><button id>" "\"$input_id\">Select</button>"
+                elif [[ "$key" == "btn_b" ]] ; then
+				    iniSet "<!--B--><button id>" "\"$input_id\">ParentDir</button>"
+                elif [[ "$key" == "btn_x" ]] ; then
+				    iniSet "<!--X--><button id>" "\"$input_id\">FullScreen</button>"
+                elif [[ "$key" == "btn_y" ]] ; then
+				    iniSet "<!--Y--><button id>" "\"$input_id\">ContextMenu</button>"
+                elif [[ "$key" == "btn_trigger_left" ]] ; then
+				    iniSet "<!--LEFT SHOULDER BUTTON--><button id>" "\"$input_id\">Stop</button>"
+                elif [[ "$key" == "btn_trigger_right" ]] ; then
+				    iniSet "<!--RIGHT SHOULDER BUTTON--><button id>" "\"$input_id\">Pause</button>"
+                elif [[ "$key" == "btn_escape" ]] ; then
+				    iniSet "<!--BACK--><button id>" "\"$input_id\">PreviousMenu</button>"
+                elif [[ "$key" == "btn_start" ]] ; then
+				    iniSet "<!--START--><button id>" "\"$input_id\">XBMC.ActivateWindow(settings)</button>"
+                elif [[ "$key" == "left_analogue_stick_button" ]] ; then
+				    iniSet "<!--LEFT ANALOGUE STICK BUTTON-->" "\"$input_id\">Playlist</button>"
+                elif [[ "$key" == "right_analogue_stick_button" ]] ; then
+				    iniSet "<!--RIGHT ANALOGUE STICK BUTTON--><button id>" "\"$input_id\">XBMC.UpdateLibrary(video)</button>"
+#                if [[ "$key" != *axis* || "$key" == "btn_a" ]] ; then
+#				    iniSet "      <!--A--><button id>" "\"$input_id\">Select</button>"
+#               elif [[ "$key" != *axis* || "$key" == "btn_b" ]] ; then
+#				    iniSet "<!--B--><button id>" "\"$input_id\">ParentDir</button>"
 #				elif [[ "$key" == "btn_a" ]] ; then
 #				iniSet "      <button id=\"" "$input_id" "\">Select</button><!--A-->"
 #				elif [[ "$key" == "btn_b" ]] ; then
@@ -236,7 +193,6 @@ function map_kodi_joystick() {
         esac
     done
 }
-
 function onend_kodi_joystick() {
     local device_type=$1
     local device_name=$2
@@ -245,6 +201,10 @@ function onend_kodi_joystick() {
     case "$device_name" in
         *)
             file="$configdir/ports/kodi/userdata/keymaps/${device_name// /}.xml"
+			iniConfig "" "" "$file"
+ 			iniSet "</joystick>" "</global>" 
+ 			iniSet "</keymap>"
+ #			iniSet "</keymap>"
             ;;
     esac
     
