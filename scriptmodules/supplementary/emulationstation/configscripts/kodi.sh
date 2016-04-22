@@ -15,27 +15,22 @@ function onstart_kodi_joystick() {
     local file
     
     case "$device_name" in
-        "Xbox 360 Controller (xpad driver)")
-            file="$configdir/kodi/userdata/keymaps/controller_xpad.cfg"
-            ;;
-        "Xbox 360 Controller (xboxdrv userspace driver)")
-            file="$configdir/kodi/userdata/keymaps/controller_xboxdrv.cfg"
-            ;;
         *)
-            file="$configdir/kodi/userdata/keymaps/controller_${device_name// /}.cfg"
+            file="$configdir/ports/kodi/userdata/keymaps/${device_name// /}.xml"
             ;;
     esac
 
     # create mapping dir if necessary.
-    mkdir -p "$configdir/kodi/userdata/keymaps"
+    mkdir -p "$configdir/ports/kodi/userdata/keymaps"
 
     # remove old config file
     rm -f "$file"
 
     # write config template
     cat > "$file" << _EOF_
-[emulator]
-mapping_name =
+<keymap>
+  <global>
+<joystick name=
 btn_escape =
 
 [dreamcast]
@@ -115,7 +110,7 @@ _EOF_
 
     # write temp file header
     iniConfig " = " "" "$file"
-    iniSet "mapping_name" "$device_name"
+    iniSet "<joystick name=" "$device_name"
 }
 
 function map_kodi_joystick() {
@@ -260,14 +255,8 @@ function onend_kodi_joystick() {
     local file
     
     case "$device_name" in
-        "Xbox 360 Controller (xpad driver)")
-            file="$configdir/kodi/userdata/keymaps/controller_xpad.xml"
-            ;;
-        "Xbox 360 Controller (xboxdrv userspace driver)")
-            file="$configdir/kodi/userdata/keymaps/controller_xboxdrv.xml"
-            ;;
         *)
-            file="$configdir/kodi/userdata/keymaps/controller_${device_name// /}.xml"
+            file="$configdir/ports/kodi/userdata/keymaps/${device_name// /}.xml"
             ;;
     esac
     
