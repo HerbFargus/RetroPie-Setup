@@ -28,11 +28,10 @@ function onstart_kodi_joystick() {
 
     # write config template
     cat > "$file" << _EOF_
+<?xml version="1.0" encoding="UTF-8"?>
 <keymap>
   <global>
-<joystick name=
-btn_escape =
-
+    <joystick name="Xbox Gamepad (userspace driver)">
 [dreamcast]
 btn_a =
 btn_b =
@@ -110,7 +109,7 @@ _EOF_
 
     # write temp file header
     iniConfig " = " "" "$file"
-    iniSet "<joystick name=" "$device_name"
+    iniSet "<joystick name" "\"$device_name\">"
 }
 
 function map_kodi_joystick() {
@@ -137,7 +136,7 @@ function map_kodi_joystick() {
             keys=("btn_dpad1_right")
             ;;
         a)
-            keys=("btn_b")
+            keys=(btn_b)
             ;;
         b)
             keys=("btn_a")
@@ -216,11 +215,6 @@ function map_kodi_joystick() {
                     iniSet "axis_x_inverted" "no"
                 elif [[ "$key" == *axis* ]] ; then
                     case "$device_name" in 
-                        "Xbox 360 Controller (xpad driver)"|"Xbox 360 Controller (xboxdrv userspace driver)"|"Microsoft X-Box 360 pad"|"Xbox Gamepad (userspace driver)"|"Xbox 360 Wireless Receiver (XBOX)"|"Microsoft X-Box One pad"|"Microsoft X-Box pad (Japan)"|"Chinese-made Xbox Controller")
-                            if [[ "$input_id" -gt 2 && "$input_id" -lt 5 ]]; then
-                                input_id=$(($input_id+13))
-                            fi
-                            ;;
                     esac
                     iniSet "${key}" "$input_id"
                     iniSet "${key}_inverted" "no"
@@ -229,20 +223,14 @@ function map_kodi_joystick() {
             hat)
                 ;;
             *)
-                if [[ "$key" != *axis* ]] ; then
-                    # input_id must be recalculated: 288d = button 0
-                    input_id=$(($input_id+288))
-                    # workaround for specific controller button mismatch
-                    case "$device_name" in 
-                        "Xbox 360 Controller (xpad driver)"|"Xbox 360 Controller (xboxdrv userspace driver)"|"Microsoft X-Box 360 pad"|"Xbox Gamepad (userspace driver)"|"Xbox 360 Wireless Receiver (XBOX)"|"Microsoft X-Box One pad"|"Microsoft X-Box pad (Japan)"|"Chinese-made Xbox Controller")
-                            if [[ "$input_id" -lt "294" ]]; then
-                                input_id=$(($input_id+16))
-                            else
-                                input_id=$(($input_id+20))
-                            fi
-                            ;;
-                    esac
-                    iniSet "$key" "$input_id"
+                if [[ "$key" != *axis* || "$key" == "btn_a" ]] ; then
+				    iniSet "<button id="1">" "\"$input_id\">Select</button><!--A-->"
+                if [[ "$key" != *axis* || "$key" == "btn_b" ]] ; then
+				    iniSet "<button id="2">" "\"$input_id\">ParentDir</button><!--B-->"
+#				elif [[ "$key" == "btn_a" ]] ; then
+#				iniSet "      <button id=\"" "$input_id" "\">Select</button><!--A-->"
+#				elif [[ "$key" == "btn_b" ]] ; then
+#				iniSet "      <button id\"" "$input_id" "\"ParentDir</button><!--B-->"
                 fi
                 ;;
         esac
