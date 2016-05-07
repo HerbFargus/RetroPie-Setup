@@ -65,6 +65,30 @@ function disable_usbromservice() {
     rm -f /etc/usbmount/mount.d/01_retropie_copyroms
 }
 
+function enable_mount_usbromservice() {
+    iniConfig "=" '"' /etc/usbmount/usbmount.conf
+    iniGet "FILESYSTEMS"
+    if [[ "$ini_value" != *ntfs* ]]; then
+        iniSet "FILESYSTEMS" "$ini_value ntfs"
+    fi
+    iniGet "MOUNTPOINTS"
+    if [[ ! "$ini_value" =~ $romdir ]]; then
+        iniSet "MOUNTPOINTS" "$ini_value$romdir"
+    fi
+}
+
+function disable_mount_usbromservice() {
+    iniConfig "=" '"' /etc/usbmount/usbmount.conf
+    iniGet "FILESYSTEMS"
+    if [[ "$ini_value" != *ntfs* ]]; then
+        iniDel "FILESYSTEMS" "$ini_value ntfs"
+    fi
+    iniGet "MOUNTPOINTS"
+    if [[ "$ini_value" == *$romdir*  ]]; then
+        iniDel "MOUNTPOINTS" "$romdir"
+    fi
+}
+
 function remove_usbromservice() {
     disable_usbromservice
     apt-get remove -y usbmount
@@ -73,22 +97,47 @@ function remove_usbromservice() {
 function gui_usbromservice() {
     while true; do
         cmd=(dialog --backtitle "$__backtitle" --menu "Choose from an option below." 22 86 16)
-        options=(
-            1 "Enable USB ROM Service"
-            2 "Disable USB ROM Service"
-            3 "Remove usbmount daemon"
+        local options=()
+        if [[ -f /etc/usbmount/mount.d/01_retropie_copyroms ]]; then
+            options+=(1 "Disable USB ROM Service (Enabled)")
+        else
+            options+=(1 "Enable USB ROM Service (Disabled)")
+        fi
+            iniConfig "=" '"' /etc/usbmount/usbmount.conf
+            iniGet "MOUNTPOINTS"
+        if [[ "$ini_value" == *$romdir*  ]]; then
+            options+=(2 "Disable USB ROM Mount (Enabled)")
+        else
+            options+=(2 "Enable USB ROM Mount (Disabled)")
+        fi
+        options+=(3 "Remove usbmount daemon"
         )
         choices=$("${cmd[@]}" "${options[@]}" 2>&1 >/dev/tty)
         if [[ -n "$choices" ]]; then
             case $choices in
                 1)
-                    rp_callModule "$md_id" depends
-                    rp_callModule "$md_id" enable
-                    printMsgs "dialog" "Enabled $md_desc"
+                    if [[ -f /etc/usbmount/mount.d/01_retropie_copyroms ]]; then
+                        rp_callModule "$md_id" disable
+                        printMsgs "dialog" "Disabled $md_desc"
+                    else
+                        rp_callModule "$md_id" depends
+                        rp_callModule "$md_id" enable
+                        printMsgs "dialog" "Enabled $md_desc"
+                    fi
                     ;;
                 2)
-                    rp_callModule "$md_id" disable
-                    printMsgs "dialog" "Disabled $md_desc"
+                    iniConfig "=" '"' /etc/usbmount/usbmount.conf
+                    iniGet "MOUNTPOINTS"
+                    if [[ "$ini_value" == *$romdir*  ]]; then
+                        rp_callModule "$md_id" disable_mount
+                            printMsgs "dialog" "Disabled USB ROM Mount"
+                    else
+                        rp_callModule "$md_id" depends
+                        rp_callModule "$md_id" disable
+                        printMsgs "dialog" "$md_desc cannot be running when mounting a USB. Disabled $md_desc"
+                        rp_callModule "$md_id" enable_mount
+                        printMsgs "dialog" "Enabled USB ROM Mount"
+                    fi
                     ;;
                 3)
                     rp_callModule "$md_id" remove
