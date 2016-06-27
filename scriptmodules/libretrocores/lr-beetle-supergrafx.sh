@@ -11,7 +11,7 @@
 
 rp_module_id="lr-beetle-supergrafx"
 rp_module_desc="SuperGrafx TG-16 emulator - Mednafen PCE Fast port for libretro"
-rp_module_help="ROM Extensions: .pce .ccd .cue .zip\n\nCopy your PC Engine / TurboGrafx roms to $romdir/pcengine\n\nCopy the required BIOS file syscard3.pce to $biosdir"
+rp_module_help="ROM Extensions: .pce .ccd .cue .zip\n\nCopy your PC Engine / TurboGrafx roms to $romdir/pcengine\n\nCopy your TurboGrafx CD roms to $romdir/tgcd\n\nCopy the required BIOS file syscard3.pce to $biosdir"
 rp_module_section="main"
 
 function sources_lr-beetle-supergrafx() {
@@ -35,7 +35,10 @@ function install_lr-beetle-supergrafx() {
 
 function configure_lr-beetle-supergrafx() {
     mkRomDir "pcengine"
+    mkRomDir "tgcd"    
     ensureSystemretroconfig "pcengine"
+    ensureSystemretroconfig "tgcd"
 
     addSystem 0 "$md_id" "pcengine" "$md_inst/mednafen_supergrafx_libretro.so"
+    addSystem 0 "$md_id" "tgcd" "$md_inst/mednafen_supergrafx_libretro.so"
 }
