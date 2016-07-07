@@ -51,7 +51,7 @@ function install_retropie-manager() {
 }
 
 function enable_retropie-manager() {
-    local config="\"$md_inst/bin/python\" \"$md_inst/manage.py\" runserver 0.0.0.0:8000 --settings=project.settings_production --noreload &"
+    local config="\"$md_inst/bin/python\" \"$md_inst/manage.py\" runserver 0.0.0.0:8000 --settings=project.settings_production --noreload \&"
 
     if grep -q "runserver" /etc/rc.local; then
         dialog --yesno "RetroPie-Manager is already enabled in /etc/rc.local with the following config. Do you want to update it ?\n\n$(grep "runserver" /etc/rc.local)" 22 76 2>&1 >/dev/tty || return
