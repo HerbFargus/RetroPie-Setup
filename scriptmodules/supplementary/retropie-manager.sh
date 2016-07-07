@@ -32,7 +32,6 @@ function build_retropie-manager() {
     md_ret_require="$md_build"
 }
 
-
 function install_retropie-manager() {
     make install
     md_ret_files=(
