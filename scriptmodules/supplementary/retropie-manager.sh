@@ -10,7 +10,7 @@
 #
 
 rp_module_id="retropie-manager"
-rp_module_desc="Web Based Manager for RetroPie files and configs based on the Recalbox"
+rp_module_desc="Web Based Manager for RetroPie files and configs based on the Recalbox Manager"
 rp_module_help="Open your browser and go to http://your_retropie_ip:8000/"
 rp_module_section="exp"
 
