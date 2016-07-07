@@ -47,7 +47,7 @@ function install_retropie-manager() {
     "db.sqlite3"
     "__init__.py"
 )
-chown -R "$user":"$user" "$md_inst"
+    chown -R "$user":"$user" "$md_inst"
 }
 
 function enable_retropie-manager() {
