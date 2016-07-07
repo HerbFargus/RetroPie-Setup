@@ -48,6 +48,7 @@ function install_retropie-manager() {
     "db.sqlite3"
     "__init__.py"
 )
+chown -R "$user":"$user" "$md_inst"
 }
 
 function enable_retropie-manager() {
@@ -66,10 +67,6 @@ function enable_retropie-manager() {
 function disable_retropie-manager() {
     sed -i "/runserver/d" /etc/rc.local
     printMsgs "dialog" "RetroPie-Manager configuration in /etc/rc.local has been removed."
-}
-
-function configure_retropie-manager() {
-    chown -R "$user":"$user" "$md_inst"
 }
 
 function gui_retropie-manager() {
